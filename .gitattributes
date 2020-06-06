@@ -1,5 +1,4 @@
 # SPDX-License-Identifier: CC0-1.0
 # SPDX-FileCopyrightText: 2023 Collabora, Ltd.
 
-/arucogen
-/arucogen.exe
+*.stl filter=lfs diff=lfs merge=lfs -text
