@@ -12,16 +12,21 @@ struct Triangle
 	v1, v2, v3: u32;
 }
 
+struct Model
+{
+	verts: Vertex[];
+	tris: Triangle[];
+}
+
 struct Part
 {
 	start: u32;
 	stop: u32;
 }
 
-struct Model
+struct ModelWithParts
 {
-	verts: Vertex[];
-	tris: Triangle[];
+	model: Model;
 	parts: Part[];
 }
 
@@ -37,8 +42,14 @@ fn t(v1: u32, v2: u32, v3: u32) Triangle
 	return t;
 }
 
-fn m(verts: Vertex[], tris: Triangle[], parts: Part[]) Model
+fn m(verts: Vertex[], tris: Triangle[]) Model
 {
-	m: Model = {verts, tris, parts};
+	m: Model = {verts, tris};
 	return m;
+}
+
+fn mwp(verts: Vertex[], tris: Triangle[], parts: Part[]) ModelWithParts
+{
+	mwp: ModelWithParts = {{verts, tris}, parts};
+	return mwp;
 }

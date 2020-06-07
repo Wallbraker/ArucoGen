@@ -13,7 +13,6 @@ import watt.text.string : startsWith;
 import watt.math.floating;
 
 import types;
-import models;
 import aruco;
 
 
@@ -91,8 +90,13 @@ public:
 
 	fn makeModel() Model
 	{
+		return m(this.verts.toArray(), this.tris.toArray());
+	}
+
+	fn makeModelWithParts() ModelWithParts
+	{
 		this.switchPart();
-		return m(this.verts.toArray(), this.tris.toArray(), this.parts.toArray());
+		return mwp(this.verts.toArray(), this.tris.toArray(), this.parts.toArray());
 	}
 }
 
@@ -151,48 +155,102 @@ fn addAruco(ref mm: ModelMaker, white: bool, id: u32)
 	}
 }
 
+fn readI32(ifs: io.InputFileStream) i32
+{
+	data: char[4];
+	ifs.read(data);
+	return *cast(i32*)data.ptr;
+}
+
+fn readF32(ifs: io.InputFileStream) f32
+{
+	data: char[4];
+	ifs.read(data);
+	return *cast(f32*)data.ptr;
+}
+
+fn readVertex(ifs: io.InputFileStream) Vertex
+{
+	vert: Vertex = {ifs.readF32(), ifs.readF32(), ifs.readF32()};
+	return vert;
+}
+
+fn skip2(ifs: io.InputFileStream)
+{
+	data: char[2];
+	ifs.read(data);
+}
+
+
+fn loadStl(filename: string) Model
+{
+	mm: ModelMaker;
+	ifs := new io.InputFileStream(filename);
+	header: char[80];
+	ifs.read(header);
+	num := ifs.readI32();
+
+	foreach (i; 0 .. num) {
+		normal := ifs.readVertex();
+		verts: Vertex[3];
+		verts[0] = ifs.readVertex();
+		verts[1] = ifs.readVertex();
+		verts[2] = ifs.readVertex();
+		i0 := mm.addVertex(verts[0]);
+		i1 := mm.addVertex(verts[1]);
+		i2 := mm.addVertex(verts[2]);
+		ifs.skip2();
+
+		if (i0 == i1 || i1 == i2 || i2 == i0) {
+			logln("Zero size triangle!");
+			continue;
+		}
+
+		mm.addTri(i0, i1, i2);
+	}
+
+	return mm.makeModel();
+}
+
 fn main(args: string[]) i32
 {
-	models: Model[];
+	models: ModelWithParts[];
 	ids: u32[] = [
 		10,
 		11,
 		12,
 		13,
-		14,
-		15,
+//		14,
+//		15,
 	];
-/*
-	{
-		mm: ModelMaker;
-		mm.addModel(frame.verts, frame.tris);
-		mm.addAruco(false, id);
-		models ~= mm.makeModel();
-	}
-*/
+
+	frame := loadStl("/home/jakob/3D/aruco_mk2_frame.stl");
+	top := loadStl("/home/jakob/3D/aruco_mk2_pattern_top.stl");
+	side := loadStl("/home/jakob/3D/aruco_mk2_pattern_side.stl");
+
 	foreach (i, id; ids) {
 		mm: ModelMaker;
 		mm.addModel(frame.verts, frame.tris);
-		mm.addAruco(false, id);
-		mm.switchPart();
-		if (i < 2) {
+		// mm.addAruco(false, id);
+		// mm.switchPart();
+		if (i < 1) {
 			mm.addModel(top.verts, top.tris);
 		} else {
 			mm.addModel(side.verts, side.tris);
 		}
-		mm.addAruco(true, id);
-		models ~= mm.makeModel();
+		// mm.addAruco(true, id);
+		models ~= mm.makeModelWithParts();
 	}
 
 	of := new io.OutputFileStream("/home/jakob/3D/aaa-components/3D/3dmodel.model");
 	of.write(ModelFileStart);
-	foreach (i, ref model; models) {
+	foreach (i, ref mwp; models) {
 		of.writef(ModelObjStart, i + 1);
-		foreach (vert; model.verts) {
+		foreach (vert; mwp.model.verts) {
 			of.write(new "     <vertex x=\"${vert.x}\" y=\"${vert.y}\" z=\"${vert.z}\" />\n");
 		}
 		of.write(ModelObjSwitch);
-		foreach (tri; model.tris) {
+		foreach (tri; mwp.model.tris) {
 			of.write(new "     <triangle v1=\"${tri.v1}\" v2=\"${tri.v2}\" v3=\"${tri.v3}\" />\n");
 		}
 		of.write(ModelObjEnd);
