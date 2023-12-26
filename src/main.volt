@@ -31,8 +31,15 @@ fn logln(str: string)
 	io.output.flush();
 }
 
-
-
+/*!
+ * For the Aruco generator, which triangles to add.
+ */
+enum ArucoPart
+{
+	PatternBottom,
+	PatternTop,
+	Fill,
+};
 
 struct VertexSink = mixin watt.SinkStruct!Vertex;
 struct TriangleSink = mixin watt.SinkStruct!Triangle;
@@ -135,24 +142,41 @@ fn makeCube(ref mm: ModelMaker, x: f64, y: f64, z: f64, w: f64, d: f64, h: f64)
 	mm.addModel(verts, cubeTris);
 }
 
-fn addAruco(ref mm: ModelMaker, white: bool, id: u32)
+fn addAruco(ref mm: ModelMaker, part: ArucoPart, id: u32)
 {
-	size := 5.0;
-	offset := size * -4.0;
+	size := 10.0;
+	z := 0.0;
+	fillDepth := 0.6;
+	patterBottomDepth := 1.2;
+	patterTopZ := patterBottomDepth;
+	patterTopDepth := 0.6;
+	offset := size * -4.0; // To center the aruco marker.
 
 	foreach (y; 0 .. 8) {
 		foreach (x; 0 .. 8) {
 			val := getAruco(x, y, id);
-			if (white) {
+			cubeX := size * x + offset;
+			cubeY := size * y + offset;
+			switch (part) with (ArucoPart) {
+			case PatternBottom:
+				// Bottom part of the pattern.
 				if (val) {
-					mm.makeCube(size * x + offset, size * y + offset, 1.1, 5.0, 5.0, 0.6);
-				} else {
-					mm.makeCube(size * x + offset, size * y + offset, 0.0, 5.0, 5.0, 0.5);
+					mm.makeCube(cubeX, cubeY, z, size, size, patterBottomDepth);
 				}
-			} else {
+				break;
+			case PatternTop:
+				// Extra on top of markers.
 				if (val) {
-					mm.makeCube(size * x + offset, size * y + offset, 0.0, 5.0, 5.0, 1.1);
+					mm.makeCube(cubeX, cubeY, patterTopZ, size, size, patterTopDepth);
 				}
+				break;
+			case Fill:
+				// The empty filling.
+				if (!val) {
+					mm.makeCube(cubeX, cubeY, z, size, size, fillDepth);
+				}
+				break;
+			default:
 			}
 		}
 	}
@@ -220,28 +244,25 @@ fn main(args: string[]) i32
 	models: ModelWithParts[];
 	ids: u32[] = [
 		10,
-		11,
-		12,
-		13,
-		14,
-		15,
 	];
-
-	frame := loadStl("/home/jakob/3D/aruco_mk2_frame.stl");
-	top := loadStl("/home/jakob/3D/aruco_mk2_pattern_top.stl");
-	side := loadStl("/home/jakob/3D/aruco_mk2_pattern_side.stl");
+	names: string[] = [
+		"fill",
+		"pattern_bottom",
+		"pattern_top",
+	];
+	extruders: u32[] = [
+		1,
+		2,
+		1,
+	];
 
 	foreach (i, id; ids) {
 		mm: ModelMaker;
-		mm.addModel(frame.verts, frame.tris);
-		mm.addAruco(false, id);
+		mm.addAruco(ArucoPart.Fill, id);
 		mm.switchPart();
-		if (i < 2) {
-			mm.addModel(top.verts, top.tris);
-		} else {
-			mm.addModel(side.verts, side.tris);
-		}
-		mm.addAruco(true, id);
+		mm.addAruco(ArucoPart.PatternBottom, id);
+		mm.switchPart();
+		mm.addAruco(ArucoPart.PatternTop, id);
 		models ~= mm.makeModelWithParts();
 	}
 
@@ -273,8 +294,8 @@ fn main(args: string[]) i32
 	foreach (i, ref model; models) {
 		of.writef(ConfigObjStart, i + 1, new "aruco_${ids[i]}");
 		foreach (k, part; model.parts) {
-			name := (k % 2 == 0) ? "black" : "white";
-			extruder := (k % 2 == 0) ? 1 : 2;
+			name := names[k % names.length];
+			extruder := extruders[k % extruders.length];
 			of.writef(ConfigObjVolume, part.start, part.stop, name, extruder);
 		}
 		of.writef(ConfigObjEnd);
