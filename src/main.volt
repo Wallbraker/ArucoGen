@@ -145,15 +145,16 @@ fn makeCube(ref mm: ModelMaker, x: f64, y: f64, z: f64, w: f64, d: f64, h: f64)
 fn addAruco(ref mm: ModelMaker, part: ArucoPart, id: u32)
 {
 	size := 10.0;
+	cubeCount: i32 = 8; // 6x6 with a border == 8x8
 	z := 0.0;
 	fillDepth := 0.6;
 	patterBottomDepth := 1.2;
 	patterTopZ := patterBottomDepth;
 	patterTopDepth := 0.6;
-	offset := size * -4.0; // To center the aruco marker.
+	offset := size * -(cubeCount / 2); // To center the aruco marker.
 
-	foreach (y; 0 .. 8) {
-		foreach (x; 0 .. 8) {
+	foreach (y; 0 .. cubeCount) {
+		foreach (x; 0 .. cubeCount) {
 			val := getAruco(x, y, id);
 			cubeX := size * x + offset;
 			cubeY := size * y + offset;
