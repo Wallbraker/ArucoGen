@@ -1,0 +1,10 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: ArucoGen
+Upstream-Contact: Jakob Bornecrantz <wallbraker@gmail.com>
+Source: https://github.com/Wallbraker/ArucoGen
+
+# Sample paragraph, commented out:
+#
+# Files: src/*
+# Copyright: $YEAR $NAME <$CONTACT>
+# License: ...
