@@ -144,20 +144,26 @@ fn makeCube(ref mm: ModelMaker, x: f64, y: f64, z: f64, w: f64, d: f64, h: f64)
 
 fn addAruco(ref mm: ModelMaker, part: ArucoPart, id: u32)
 {
-	size := 10.0;
-	cubeCount: i32 = 8; // 6x6 with a border == 8x8
+	totalSize := 80.0;
+	cubeCount: i32 = 6; // 4x4 with a border == 8x8
+
+	size := totalSize / cubeCount;
+	offset := -(totalSize / 2); // To center the aruco marker.
+
 	z := 0.0;
 	fillDepth := 0.6;
 	patterBottomDepth := 1.2;
 	patterTopZ := patterBottomDepth;
 	patterTopDepth := 0.6;
-	offset := size * -(cubeCount / 2); // To center the aruco marker.
 
 	foreach (y; 0 .. cubeCount) {
 		foreach (x; 0 .. cubeCount) {
-			val := getAruco(x, y, id);
+
+			val := getAruco4x4(x, y, id);
+
 			cubeX := size * x + offset;
 			cubeY := size * y + offset;
+
 			switch (part) with (ArucoPart) {
 			case PatternBottom:
 				// Bottom part of the pattern.
@@ -244,7 +250,7 @@ fn main(args: string[]) i32
 {
 	models: ModelWithParts[];
 	ids: u32[] = [
-		10,
+		0,
 	];
 	names: string[] = [
 		"fill",
