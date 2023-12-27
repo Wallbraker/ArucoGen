@@ -249,13 +249,16 @@ fn main(args: string[]) i32
 		"fill",
 		"pattern_bottom",
 		"pattern_top",
+		"side",
 	];
 	extruders: u32[] = [
 		1,
 		2,
 		1,
+		2,
 	];
 
+	side := loadStl("ArucoGen/res/side-80mm.stl");
 	foreach (i, id; ids) {
 		mm: ModelMaker;
 		mm.addAruco(ArucoPart.Fill, id);
@@ -263,6 +266,8 @@ fn main(args: string[]) i32
 		mm.addAruco(ArucoPart.PatternBottom, id);
 		mm.switchPart();
 		mm.addAruco(ArucoPart.PatternTop, id);
+		mm.switchPart();
+		mm.addModel(side.verts, side.tris);
 		models ~= mm.makeModelWithParts();
 	}
 
