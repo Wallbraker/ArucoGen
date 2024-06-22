@@ -270,7 +270,7 @@ fn main(args: string[]) i32
 	extruders: u32[] = [
 		1,
 		2,
-		1,
+		3,
 		2,
 	];
 
