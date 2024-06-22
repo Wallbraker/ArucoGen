@@ -151,10 +151,10 @@ fn addAruco(ref mm: ModelMaker, part: ArucoPart, id: u32)
 	offset := -(totalSize / 2); // To center the aruco marker.
 
 	z := 0.0;
-	fillDepth := 0.6;
-	patterBottomDepth := 1.2;
+	fillDepth := 0.2 + 0.4 * 3;
+	patterBottomDepth := 0.2 + 0.4 * 2;
 	patterTopZ := patterBottomDepth;
-	patterTopDepth := 0.6;
+	patterTopDepth := 0.4 * 3;
 
 	foreach (y; 0 .. cubeCount) {
 		foreach (x; 0 .. cubeCount) {
