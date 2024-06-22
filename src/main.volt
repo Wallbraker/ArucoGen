@@ -249,9 +249,18 @@ fn loadStl(filename: string) Model
 fn main(args: string[]) i32
 {
 	models: ModelWithParts[];
-	ids: u32[] = [
-		0,
-	];
+	ids: u32[];
+
+	if (false) {
+		// All four corners set.
+		ids = [21, 32, 33, 69, 73, 85, 87];
+	}
+
+	if (true) {
+		// First id.
+		ids = [0];
+	}
+
 	names: string[] = [
 		"fill",
 		"pattern_bottom",
